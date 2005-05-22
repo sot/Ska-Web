@@ -13,6 +13,8 @@ require Exporter;
 our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(
 				   get_url
+				   get_url_content 
+				   get_html_content 
 				  ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(
