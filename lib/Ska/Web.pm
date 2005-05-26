@@ -63,6 +63,7 @@ sub get_html_content {
 ####################################################################################
     my $html = shift;
     my %opt = @_;
+    local $_;
     undef $Accumulate;
     undef $Accumulate_depth;
     undef @Accumulate_img_src;
@@ -72,12 +73,19 @@ sub get_html_content {
     $tree->parse($html);
     $tree->eof();
 
-    traverse($tree, 0);
+    # Check if it seems to be actual HTML by seeing if every HTML
+    # element from parse is actually implicit
+    if (grep { not $_->implicit } $tree->descendants) {
+	traverse($tree, 0)
+    } else {
+	$Accumulate = $html;
+    }
+
     my $content;
     if (defined $Accumulate) {
 	my $pre = $opt{pre} || '\A';
 	my $post = $opt{post} || '\Z';
-	($content) = ($Accumulate =~ /$pre(.*?)$post/s);
+	($content) = ($Accumulate =~ /$pre(.*?)$post/ms);
     }
 
     my @images;
@@ -146,7 +154,7 @@ Ska::Web - Utilities related to Perl web access
 
 =head1 SYNOPSIS
 
-  use Ska::Web qw(get_url);
+  use Ska::Web qw(:all);
   ($html, $error) = get_url('http://sec.noaa.gov/rt_plots/xray_5m.html'
                             user   => $username,
                             passwd => $password,
@@ -167,6 +175,12 @@ Ska::Web - Utilities related to Perl web access
 				      );
 
 
+  ($content, $error) = get_url_content('file:///proj/rac/ops/CRM2/CRMsummary.dat',
+				       pre => 'Currently scheduled FPSI, OTG :',
+				       post => '$',
+				      );
+
+
   ($content, $error) = get_html_content($html,
 				       pre => 'Proton Flux',
 				       post => 's-sr-MeV',
@@ -182,7 +196,8 @@ includes the facility to access password-protected sites and set a timeout
 error message.  In scalar context only the content is returned.  In both cases
 the content will be undefined if the Web request was not successful.
 
-Get_url_content() fetches a web page and then returns filtered content and/or
+Get_url_content() fetches the content of any valid URL (including http://,
+ftp://, and file://) and then returns filtered content and/or
 image data from that page.  The matched images are returned as an array of  
 hash references with the keys 'data', 'name', and 'url'.
  

@@ -5,7 +5,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 BEGIN { use_ok('Ska::Web') };
 
 #########################
@@ -31,3 +31,9 @@ ok(defined $content and not defined $error);
 								  }
 						       );
 ok(defined $content and not defined $error and @images);
+
+($content, $error, @images) = Ska::Web::get_url_content("file:///$ENV{PWD}/t/get_content.t",
+							pre => 'Insert your\s+test code',
+							post => 'script.$');
+ok(defined $content and not defined $error and not @images);
+
