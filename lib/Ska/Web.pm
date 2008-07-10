@@ -7,6 +7,7 @@ use LWP::UserAgent;
 use HTML::TreeBuilder;
 use Data::Dumper;
 use URI;
+use Carp;
 
 require Exporter;
 
@@ -14,7 +15,8 @@ our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(
 				   get_url
 				   get_url_content 
-				   get_html_content 
+				   get_html_content
+                                   get_user_passwd
 				  ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(
@@ -45,6 +47,30 @@ sub get_url {
     } else {
 	return wantarray ? (undef, $response->status_line) : undef;
     }
+}
+
+##***************************************************************************
+sub get_user_passwd {
+# Get get username and password configuration
+# data from Config::General format file(s).  Croaks if unsuccessful.
+# 
+# Input: file glob specifying files to try reading.
+# Output: (username, password)
+##***************************************************************************
+    eval "use Config::General";
+    croak $@ if $@;
+
+    my $auth_file_glob = shift;
+
+    foreach my $filename (glob $auth_file_glob) {
+        if (-r $filename) {
+            my %authinfo = ParseConfig(-ConfigFile => $filename);
+            if (defined $authinfo{username} and defined $authinfo{password}) {
+                return ($authinfo{username}, $authinfo{password});
+            }
+        }
+    }
+    croak "Failed to get a valid username and password from $auth_file_glob";
 }
 
 ####################################################################################
