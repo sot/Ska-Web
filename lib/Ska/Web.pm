@@ -43,9 +43,9 @@ sub get_url {
     
     my $response = $user_agent->request($req);
     if ($response->is_success) {
-	return wantarray ? ($response->content, undef) : $response->content;
+	return wantarray ? ($response->content, undef, $response->{_headers}) : $response->content;
     } else {
-	return wantarray ? (undef, $response->status_line) : undef;
+	return wantarray ? (undef, $response->status_line, undef) : undef;
     }
 }
 
@@ -121,10 +121,11 @@ sub get_html_content {
 	my $uri = URI->new($src);
 	my $img_uri = $uri->abs($base_uri);
 	next if $img_uri =~ /$dummy_url/; # No base URL supplied and src is relative
-	my ($image_data, $error) = get_url($img_uri);
+	my ($image_data, $error, $header) = get_url($img_uri);
 	push @images, {data => $image_data,
 		       name => $img_uri->rel($img_uri)->as_string,
 		       url  => $img_uri->as_string,
+                       header => $header,
 		      } unless defined $error;
     }	
     
