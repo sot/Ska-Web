@@ -57,7 +57,7 @@ sub get_user_passwd {
 # Input: file glob specifying files to try reading.
 # Output: (username, password)
 ##***************************************************************************
-    eval "use Config::General";
+    eval "use Config::General qw(ParseConfig)";
     croak $@ if $@;
 
     my $auth_file_glob = shift;
